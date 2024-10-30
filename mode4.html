@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大猿口算 - 基础极限计算</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .question-box {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 24px;
+        }
+
+        .results {
+            margin-top: 30px;
+            font-size: 18px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        select {
+            padding: 10px;
+            margin-top: 20px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 18px;
+            width: 100px;
+        }
+    </style>
+    <script>
+        const questionPool = {
+            easy: [
+                { question: "lim x→0 (x^2 - 4x)", answer: 0 },
+                { question: "lim x→∞ (1/x)", answer: 0 },
+                { question: "lim x→0 (sin(x)/x)", answer: 1 },
+                { question: "lim x→∞ (3x^2 - x + 2)/(2x^2 + x)", answer: 3/2 },
+                { question: "lim x→0 (e^x - 1)/x", answer: 1 },
+                { question: "lim x→∞ (x^3)/(e^x)", answer: 0 },
+                { question: "lim x→∞ (ln(x)/x)", answer: 0 },
+                { question: "lim x→0+ (ln(x))", answer: -Infinity },
+                { question: "lim x→∞ (x/(x + 1))", answer: 1 },
+                { question: "lim x→0 (x^2 - x)", answer: 0 },
+                { question: "lim x→∞ (5x^3 - x)/(2x^3 + 3x)", answer: 5/2 },
+                { question: "lim x→∞ (1/x^2)", answer: 0 },
+                { question: "lim x→0 (cos(x))", answer: 1 },
+                { question: "lim x→∞ (3x^2 + 5x)/(x^2 + x)", answer: 3 },
+                { question: "lim x→0+ (1/x)", answer: Infinity },
+                { question: "lim x→0 (x/(1 + x))", answer: 0 },
+                { question: "lim x→0 (x^2)", answer: 0 },
+                { question: "lim x→∞ (x^2 - 4)/(2x^2 + 3)", answer: 1/2 },
+                { question: "lim x→∞ (sin(1/x)/x)", answer: 0 },
+                { question: "lim x→0 (x^3 - 2x^2)", answer: 0 }
+            ],
+            medium: [
+                { question: "lim x→0 (sin(2x)/x)", answer: 2 },
+                { question: "lim x→∞ (x^2 - 3x)/(4x^2 + 2)", answer: 1/4 },
+                { question: "lim x→0+ (1/x - 1/(x+1))", answer: Infinity },
+                { question: "lim x→0 ((x^2 - 1)/(x - 1))", answer: 2 },
+                { question: "lim x→0 (e^(2x) - 1)/(x)", answer: 2 },
+                { question: "lim x→∞ ((ln(x))/(x^2))", answer: 0 },
+                { question: "lim x→∞ (e^x)/(x^5)", answer: Infinity },
+                { question: "lim x→0 (x^2 cos(1/x))", answer: 0 },
+                { question: "lim x→0+ ((1/x) - (1/x^2))", answer: Infinity },
+                { question: "lim x→∞ ((x^3 - x)/(x^2 + 1))", answer: Infinity },
+                { question: "lim x→∞ ((x^2 - 1)/(2x^2 - 1))", answer: 1/2 },
+                { question: "lim x→0 (tan(x)/x)", answer: 1 },
+                { question: "lim x→∞ ((3x^2 - 2x + 1)/(x^2 - x + 1))", answer: 3 },
+                { question: "lim x→0+ ((ln(x^2))/x)", answer: -Infinity },
+                { question: "lim x→∞ ((sqrt(x^2 + x))/(x))", answer: 1 },
+                { question: "lim x→∞ (5x - sqrt(25x^2 + 1))", answer: 0 },
+                { question: "lim x→∞ ((x^2)/(e^x))", answer: 0 },
+                { question: "lim x→∞ ((x^3 + 1)/(e^x))", answer: 0 },
+                { question: "lim x→∞ ((3x^2 + 4)/(x^2 + 5x + 1))", answer: 3 },
+                { question: "lim x→0 ((cos(x) - 1)/x^2)", answer: -1/2 }
+            ],
+            hard: [
+                { question: "lim x→0 ((e^x - e^(-x))/(x))", answer: 2 },
+                { question: "lim x→∞ ((ln(x))/(x^3))", answer: 0 },
+                { question: "lim x→∞ ((sin(x))/x)", answer: 0 },
+                { question: "lim x→∞ ((x^3 - x)/(e^x))", answer: 0 },
+                { question: "lim x→∞ ((x^3)/(e^(x/2)))", answer: 0 },
+                { question: "lim x→∞ ((x^2 + x)/(sqrt(x^4 + 1)))", answer: 1 },
+                { question: "lim x→0 ((x^3)/(x^2 + x))", answer: 0 },
+                { question: "lim x→0 ((ln(1+x))/x)", answer: 1 },
+                { question: "lim x→0 ((sin(x))/(x^3))", answer: Infinity },
+                { question: "lim x→∞ ((x^2)/(ln(x)))", answer: Infinity },
+                { question: "lim x→0+ ((1/x^2))", answer: Infinity },
+                { question: "lim x→∞ ((x - ln(x)))", answer: Infinity },
+                { question: "lim x→∞ ((ln(x))/(x^2))", answer: 0 },
+                { question: "lim x→∞ ((x^2 - 1)/(x - 1))", answer: Infinity },
+                { question: "lim x→∞ ((3x^2 - 2x)/(2x^2 + 3x))", answer: 3/2 },
+                { question: "lim x→∞ ((sqrt(4x^2 + 1))/(x))", answer: 2 },
+                { question: "lim x→0 ((x ln(x)))", answer: 0 },
+                { question: "lim x→0 ((tan(x) - sin(x))/(x^3))", answer: 1/6 },
+                { question: "lim x→0 ((sin(2x^2))/(x))", answer: 0 },
+                { question: "lim x→∞ ((x^2 + 3)/(x sqrt(x)))", answer: Infinity }
+            ]
+        };
+
+        let questions = [];
+        let currentQuestion = 0;
+        let score = 0;
+        let startTime;
+
+        function generateQuestion(difficulty) {
+            const randomIndex = Math.floor(Math.random() * questionPool[difficulty].length);
+            return questionPool[difficulty][randomIndex];
+        }
+
+        function startGame() {
+            const questionCount = document.getElementById('questionCount').value;
+            const difficulty = document.getElementById('difficulty').value;
+            questions = [];
+            for (let i = 0; i < questionCount; i++) {
+                questions.push(generateQuestion(difficulty));
+            }
+            currentQuestion = 0;
+            score = 0;
+            startTime = new Date();
+            document.getElementById('game').classList.remove('hidden');
+            document.getElementById('results').classList.add('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentQuestion < questions.length) {
+                document.getElementById('questionBox').innerText = questions[currentQuestion].question;
+            } else {
+                endGame();
+            }
+        }
+
+        function checkAnswer() {
+            const answerInput = document.getElementById('answerInput');
+            const userAnswer = answerInput.value.trim();
+            const correctAnswer = questions[currentQuestion].answer.toString().toLowerCase();
+            if (userAnswer.toLowerCase() === correctAnswer) {
+                score++;
+            }
+            currentQuestion++;
+            answerInput.value = '';
+            showQuestion();
+        }
+
+        function endGame() {
+            const endTime = new Date();
+            const totalTime = (endTime - startTime) / 1000;
+            const averageTime = score === 0 ? -1 : totalTime / score;
+            document.getElementById('score').innerText = score;
+            document.getElementById('totalQuestions').innerText = questions.length;
+            document.getElementById('totalTime').innerText = totalTime.toFixed(3);
+            document.getElementById('averageTime').innerText = averageTime.toFixed(3);
+            document.getElementById('game').classList.add('hidden');
+            document.getElementById('results').classList.remove('hidden');
+        }
+    </script>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">大猿口算 - 基础极限计算</div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="mode1.html">模式一</a></li>
+                    <li><a href="mode2.html">模式二</a></li>
+                    <li><a href="mode3.html">模式三</a></li>
+                    <li><a href="mode4.html" class="active">模式四</a></li>
+                    <li><a href="mode5.html">模式五</a></li>
+                    <li><a href="https://diary.bid/%e6%8e%92%e8%a1%8c%e6%a6%9c-%e5%a4%a7%e7%8c%bf%e5%8f%a3%e7%ae%97">排行榜</a></li>
+                    <li><a href="https://diary.bid/%e9%97%ae%e9%a2%98%e5%8f%8d%e9%a6%88">问题反馈</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1>函数极限计算</h1>
+        <p>请选择题目数量：</p>
+        <select id="questionCount">
+            <option value="5">5 题</option>
+            <option value="10">10 题</option>
+        </select>
+        <p>提示：用 Infinity 表示无穷（前面可以加“-”）</p>
+
+        <p>请选择难度：</p>
+        <select id="difficulty">
+            <option value="easy">简单</option>
+            <option value="medium">中等</option>
+            <option value="hard">困难</option>
+        </select>
+        <button class="button" onclick="startGame()">开始游戏</button>
+
+        <div id="game" class="hidden">
+            <div class="question-box" id="questionBox"></div>
+            <input type="text" id="answerInput" placeholder="请输入答案" onkeydown="if(event.key === 'Enter'){checkAnswer()}">
+            <button class="button" onclick="checkAnswer()">提交</button>
+        </div>
+
+        <div id="results" class="results hidden">
+            <p>总分: <span id="score"></span> / <span id="totalQuestions"></span></p>
+            <p>总用时: <span id="totalTime"></span> 秒</p>
+            <p>平均每题用时: <span id="averageTime"></span> 秒</p>
+            <button class="button" onclick="location.reload()">再玩一次</button>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>© 2024 <a href="https://diary.bid">LX</a> | 版权所有</p>
+        </div>
+    </footer>
+</body>
+
+</html>

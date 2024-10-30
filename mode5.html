@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大猿口算 - 行列式计算</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .question-box {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 24px;
+        }
+
+        table.det {
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+
+        table.det td, table.det th {
+            border: 1px solid #000;
+            padding: 8px 12px;
+            text-align: center;
+            width: 50px;
+            height: 50px;
+        }
+
+        .results {
+            margin-top: 30px;
+            font-size: 18px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        select {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 18px;
+            width: 150px;
+            margin-top: 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 600;
+        }
+    </style>
+    <script>
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'F12') {
+                event.preventDefault();
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">大猿口算 - 行列式计算</div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="mode1.html">模式一</a></li>
+                    <li><a href="mode2.html">模式二</a></li>
+                    <li><a href="mode3.html">模式三</a></li>
+                    <li><a href="mode4.html">模式四</a></li>
+                    <li><a href="mode5.html" class="active">模式五</a></li>
+                    <li><a href="https://diary.bid/%e6%8e%92%e8%a1%8c%e6%a6%9c-%e5%a4%a7%e7%8c%bf%e5%8f%a3%e7%ae%97">排行榜</a></li>
+                    <li><a href="https://diary.bid/%e9%97%ae%e9%a2%98%e5%8f%8d%e9%a6%88">问题反馈</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1>行列式计算</h1>
+        <p>请选择题目数量和行列式的阶数：</p>
+        <div>
+            <label for="questionCount">题目数量：</label>
+            <select id="questionCount">
+                <option value="5">5 题</option>
+                <option value="10">10 题</option>
+                <option value="25">25 题</option>
+                <option value="50">50 题</option>
+            </select>
+
+            <label for="matrixOrder">行列式阶数：</label>
+            <select id="matrixOrder">
+                <option value="2">2 阶</option>
+                <option value="3">3 阶</option>
+                <option value="4">4 阶</option>
+                <option value="5">5 阶</option>
+            </select>
+        </div>
+        <button class="button" onclick="startGame()">开始游戏</button>
+
+        <div id="game" class="hidden">
+            <div class="question-box" id="questionBox"></div>
+            <input type="number" id="answerInput" placeholder="请输入答案" onkeydown="if(event.key === 'Enter'){checkAnswer()}">
+            <button class="button" onclick="checkAnswer()">提交</button>
+            <p>第 <span id="currentQuestion">0</span> / <span id="totalQuestionsDisplay">0</span> 题</p>
+        </div>
+
+        <div id="results" class="results hidden">
+            <p>答对题目数量: <span id="score"></span> / <span id="totalQuestionsFinal"></span></p>
+            <p>总用时: <span id="totalTime"></span> 秒</p>
+            <p>平均每道正确题目用时: <span id="averageTime"></span> 秒</p>
+            <button class="button" onclick="location.reload()">再玩一次</button>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>© 2024 <a href="https://diary.bid">LX</a> | 版权所有</p>
+        </div>
+    </footer>
+
+    <script>
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let startTime;
+        let endTime;
+        let timePerQuestion = [];
+
+        function startGame() {
+            const count = parseInt(document.getElementById('questionCount').value);
+            const order = parseInt(document.getElementById('matrixOrder').value);
+            generateQuestions(count, order);
+            document.getElementById('totalQuestionsDisplay').innerText = count;
+            document.getElementById('currentQuestion').innerText = 1;
+            document.getElementById('score').innerText = "0";
+            document.getElementById('game').classList.remove('hidden');
+            document.getElementById('results').classList.add('hidden');
+            score = 0;
+            timePerQuestion = [];
+            currentQuestionIndex = 0;
+            startTime = Date.now();
+            showQuestion();
+        }
+
+        function generateQuestions(count, order) {
+            questions = [];
+            for (let i = 0; i < count; i++) {
+                const matrix = generateRandomMatrix(order);
+                const det = computeDeterminant(matrix);
+                questions.push({ matrix, det });
+            }
+        }
+
+        function generateRandomMatrix(order) {
+            const matrix = [];
+            for (let i = 0; i < order; i++) {
+                const row = [];
+                for (let j = 0; j < order; j++) {
+                    row.push(getRandomInt(-10, 10));
+                }
+                matrix.push(row);
+            }
+            return matrix;
+        }
+
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function computeDeterminant(matrix) {
+            const n = matrix.length;
+            if (n === 1) {
+                return matrix[0][0];
+            }
+            if (n === 2) {
+                return matrix[0][0]*matrix[1][1] - matrix[0][1]*matrix[1][0];
+            }
+            let det = 0;
+            for (let col = 0; col < n; col++) {
+                det += ((col % 2 === 0) ? 1 : -1) * matrix[0][col] * computeDeterminant(getMinor(matrix, 0, col));
+            }
+            return det;
+        }
+
+        function getMinor(matrix, row, col) {
+            return matrix.slice(1).map(r => r.filter((_, c) => c !== col));
+        }
+
+        function showQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                endGame();
+                return;
+            }
+            const question = questions[currentQuestionIndex];
+            const matrixHTML = generateMatrixHTML(question.matrix);
+            document.getElementById('questionBox').innerHTML = `
+                <p>计算下列行列式的值：</p>
+                ${matrixHTML}
+            `;
+            document.getElementById('answerInput').value = '';
+            document.getElementById('answerInput').focus();
+            // Record the start time for this question
+            questions[currentQuestionIndex].questionStartTime = Date.now();
+        }
+
+        function generateMatrixHTML(matrix) {
+            let html = '<table class="det">';
+            matrix.forEach(row => {
+                html += '<tr>';
+                row.forEach(cell => {
+                    html += `<td>${cell}</td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</table>';
+            return html;
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseInt(document.getElementById('answerInput').value);
+            if (isNaN(userAnswer)) {
+                alert('请输入一个有效的整数答案。');
+                return;
+            }
+            const currentQuestion = questions[currentQuestionIndex];
+            const correctAnswer = currentQuestion.det;
+            const questionEndTime = Date.now();
+            const timeTaken = (questionEndTime - currentQuestion.questionStartTime) / 1000;
+            if (userAnswer === correctAnswer) {
+                score++;
+                timePerQuestion.push(timeTaken);
+            }
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                document.getElementById('currentQuestion').innerText = currentQuestionIndex + 1;
+                showQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            endTime = Date.now();
+            const totalTime = (endTime - startTime) / 1000;
+            const averageTime = timePerQuestion.length > 0 ? (timePerQuestion.reduce((a, b) => a + b, 0) / timePerQuestion.length).toFixed(2) : 0;
+            document.getElementById('score').innerText = score;
+            document.getElementById('totalQuestionsFinal').innerText = questions.length;
+            document.getElementById('totalTime').innerText = totalTime.toFixed(2);
+            document.getElementById('averageTime').innerText = averageTime;
+            document.getElementById('game').classList.add('hidden');
+            document.getElementById('results').classList.remove('hidden');
+        }
+
+    </script>
+</body>
+
+</html>

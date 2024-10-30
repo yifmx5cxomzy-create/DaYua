@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大猿口算 - 方程组求解</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .question-box {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 24px;
+        }
+
+        .results {
+            margin-top: 30px;
+            font-size: 18px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        select {
+            padding: 10px;
+            margin-top: 20px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 18px;
+            width: 100px;
+        }
+
+        .inputs-box {
+            margin-top: 20px;
+        }
+
+        .input-box {
+            margin-bottom: 10px;
+        }
+    </style>
+    <script>
+        let questions = [];
+        let currentQuestion = 0;
+        let score = 0;
+        let startTime;
+        const variables = ['x', 'y', 'z', 'm', 'n']; 
+
+        function generateEquations(variableCount) {
+            let equations = [];
+            let coefficients = [];
+            let answers = [];
+
+            for (let i = 0; i < variableCount; i++) {
+                answers.push(Math.floor(Math.random() * 201) - 100);
+            }
+
+            for (let i = 0; i < variableCount; i++) {
+                let equation = '';
+                let equationCoefficients = [];
+
+                for (let j = 0; j < variableCount; j++) {
+                    const coefficient = Math.floor(Math.random() * 201) - 100; 
+                    equationCoefficients.push(coefficient);
+                    equation += `${coefficient}${variables[j]} `;
+                    if (j < variableCount - 1) {
+                        equation += '+ ';
+                    }
+                }
+
+                const constant = equationCoefficients.reduce((sum, coeff, index) => sum + coeff * answers[index], 0);
+                equation += `= ${constant}`;
+
+                equations.push(equation);
+                coefficients.push(equationCoefficients);
+            }
+
+            return {
+                equations: equations,
+                answers: answers
+            };
+        }
+
+        function startGame() {
+            const questionCount = document.getElementById('questionCount').value;
+            questions = [];
+            for (let i = 0; i < questionCount; i++) {
+                const variableCount = Math.floor(Math.random() * 4) + 2; 
+                questions.push(generateEquations(variableCount));
+            }
+            currentQuestion = 0;
+            score = 0;
+            startTime = new Date();
+            document.getElementById('game').classList.remove('hidden');
+            document.getElementById('results').classList.add('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentQuestion < questions.length) {
+                const questionData = questions[currentQuestion];
+                document.getElementById('questionBox').innerHTML = questionData.equations.join('<br>');
+
+                const inputsBox = document.getElementById('inputsBox');
+                inputsBox.innerHTML = '';
+
+                for (let i = 0; i < questionData.answers.length; i++) {
+                    const inputBox = document.createElement('div');
+                    inputBox.classList.add('input-box');
+                    inputBox.innerHTML = `<label for="answer${i + 1}">${variables[i]}：</label><input type="text" id="answer${i + 1}" class="answer-input">`;
+                    inputsBox.appendChild(inputBox);
+                }
+            } else {
+                endGame();
+            }
+        }
+
+        function checkAnswer() {
+            const questionData = questions[currentQuestion];
+            let allCorrect = true;
+
+            for (let i = 0; i < questionData.answers.length; i++) {
+                const userAnswer = parseFloat(document.getElementById(`answer${i + 1}`).value);
+                if (userAnswer !== questionData.answers[i]) {
+                    allCorrect = false;
+                    break;
+                }
+            }
+
+            if (allCorrect) {
+                score++;
+            }
+            currentQuestion++;
+            showQuestion();
+        }
+
+        function endGame() {
+            const endTime = new Date();
+            const totalTime = (endTime - startTime) / 1000;
+            const averageTime = score === 0 ? -1 : totalTime / score;
+            document.getElementById('score').innerText = score;
+            document.getElementById('totalQuestions').innerText = questions.length;
+            document.getElementById('totalTime').innerText = totalTime.toFixed(3);
+            document.getElementById('averageTime').innerText = averageTime.toFixed(3);
+            document.getElementById('game').classList.add('hidden');
+            document.getElementById('results').classList.remove('hidden');
+        }
+    </script>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">大猿口算 - 方程组求解</div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="mode1.html">模式一</a></li>
+                    <li><a href="mode2.html" class="active">模式二</a></li>
+                    <li><a href="mode3.html">模式三</a></li>
+                    <li><a href="mode4.html">模式四</a></li>
+                    <li><a href="mode5.html">模式五</a></li>
+                    <li><a href="https://diary.bid/%e6%8e%92%e8%a1%8c%e6%a6%9c-%e5%a4%a7%e7%8c%bf%e5%8f%a3%e7%ae%97">排行榜</a></li>
+                    <li><a href="https://diary.bid/%e9%97%ae%e9%a2%98%e5%8f%8d%e9%a6%88">问题反馈</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1>2-5元一次方程</h1>
+        <p>请选择题目数量：</p>
+        <select id="questionCount">
+            <option value="5">5 题</option>
+            <option value="10">10 题</option>
+            <option value="25">25 题</option>
+            <option value="50">50 题</option>
+        </select>
+        <button class="button" onclick="startGame()">开始游戏</button>
+
+        <div id="game" class="hidden">
+            <div class="question-box" id="questionBox"></div>
+            <div class="inputs-box" id="inputsBox"></div>
+            <button class="button" onclick="checkAnswer()">提交</button>
+        </div>
+
+        <div id="results" class="results hidden">
+            <p>总分: <span id="score"></span> / <span id="totalQuestions"></span></p>
+            <p>总用时: <span id="totalTime"></span> 秒</p>
+            <p>平均每题用时: <span id="averageTime"></span> 秒</p>
+            <button class="button" onclick="location.reload()">再玩一次</button>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>© 2024 <a href="https://diary.bid">LX</a> | 版权所有</p>
+        </div>
+    </footer>
+</body>
+
+</html>

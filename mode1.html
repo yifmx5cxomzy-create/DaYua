@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大猿口算 - 模式一</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .question-box {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 24px;
+        }
+
+        .results {
+            margin-top: 30px;
+            font-size: 18px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        select {
+            padding: 10px;
+            margin-top: 20px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 18px;
+            width: 100px;
+        }
+    </style>
+    <script>
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'F12') {
+                event.preventDefault();
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">大猿口算 - 模式一</div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="mode1.html" class="active">模式一</a></li>
+                    <li><a href="mode2.html">模式二</a></li>
+                    <li><a href="mode3.html">模式三</a></li>
+                    <li><a href="mode4.html">模式四</a></li>
+                    <li><a href="https://diary.bid/%e6%8e%92%e8%a1%8c%e6%a6%9c-%e5%a4%a7%e7%8c%bf%e5%8f%a3%e7%ae%97">排行榜</a></li>
+                    <li><a href="https://diary.bid/%e9%97%ae%e9%a2%98%e5%8f%8d%e9%a6%88">问题反馈</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1>基础100以内的加减乘除法</h1>
+        <p>请选择题目数量：</p>
+        <select id="questionCount">
+            <option value="5">5 题</option>
+            <option value="10">10 题</option>
+            <option value="25">25 题</option>
+            <option value="50">50 题</option>
+        </select>
+        <button class="button" onclick="startGame()">开始游戏</button>
+
+        <div id="game" class="hidden">
+            <div class="question-box" id="questionBox"></div>
+            <input type="text" id="answerInput" placeholder="请输入答案" onkeydown="if(event.key === 'Enter'){checkAnswer()}">
+            <button class="button" onclick="checkAnswer()">提交</button>
+        </div>
+
+        <div id="results" class="results hidden">
+            <p>总分: <span id="score"></span> / <span id="totalQuestions"></span></p>
+            <p>总用时: <span id="totalTime"></span> 秒</p>
+            <p>平均每题用时: <span id="averageTime"></span> 秒</p>
+            <button class="button" onclick="location.reload()">再玩一次</button>
+        </div>
+    </div>
+
+    <script>
+        let questions = [];
+        let currentQuestion = 0;
+        let score = 0;
+        let startTime;
+
+        function generateQuestion() {
+            const operations = ['+', '-', '*', '/'];
+            const operation = operations[Math.floor(Math.random() * operations.length)];
+            let num1, num2;
+
+            switch (operation) {
+                case '+':
+                    num1 = Math.floor(Math.random() * 100);
+                    num2 = Math.floor(Math.random() * 100);
+                    break;
+                case '-':
+                    num1 = Math.floor(Math.random() * 100);
+                    num2 = Math.floor(Math.random() * 100);
+                    if (num1 < num2) {
+                        [num1, num2] = [num2, num1];
+                    }
+                    break;
+                case '*':
+                    num1 = Math.floor(Math.random() * 100);
+                    num2 = Math.floor(Math.random() * 10);
+                    if (Math.random() > 0.5) {
+                        [num1, num2] = [num2, num1];
+                    }
+                    break;
+                case '/':
+                    num2 = Math.floor(Math.random() * 99) + 1;
+                    num1 = num2 * Math.floor(Math.random() * 10);
+                    break;
+            }
+
+            return {
+                question: `${num1} ${operation} ${num2}`,
+                answer: eval(`${num1} ${operation} ${num2}`)
+            };
+        }
+
+        function startGame() {
+            const questionCount = document.getElementById('questionCount').value;
+            questions = [];
+            for (let i = 0; i < questionCount; i++) {
+                questions.push(generateQuestion());
+            }
+            currentQuestion = 0;
+            score = 0;
+            startTime = new Date();
+            document.getElementById('game').classList.remove('hidden');
+            document.getElementById('results').classList.add('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentQuestion < questions.length) {
+                document.getElementById('questionBox').innerText = questions[currentQuestion].question;
+            } else {
+                endGame();
+            }
+        }
+
+        function checkAnswer() {
+            const answerInput = document.getElementById('answerInput');
+            const userAnswer = parseFloat(answerInput.value);
+            if (userAnswer === questions[currentQuestion].answer) {
+                score++;
+            }
+            currentQuestion++;
+            answerInput.value = '';
+            showQuestion();
+        }
+
+        function endGame() {
+            const endTime = new Date();
+            const totalTime = (endTime - startTime) / 1000;
+            const averageTime = score === 0 ? -1 : totalTime / score;
+            document.getElementById('score').innerText = score;
+            document.getElementById('totalQuestions').innerText = questions.length;
+            document.getElementById('totalTime').innerText = totalTime.toFixed(2);
+            document.getElementById('averageTime').innerText = averageTime.toFixed(2);
+            document.getElementById('game').classList.add('hidden');
+            document.getElementById('results').classList.remove('hidden');
+        }
+    </script>
+
+    <footer>
+        <div class="container">
+            <p>© 2024 <a href="https://diary.bid">LX</a> | 版权所有</p>
+        </div>
+    </footer>
+</body>
+
+</html>
